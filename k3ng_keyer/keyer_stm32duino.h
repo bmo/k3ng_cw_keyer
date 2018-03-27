@@ -1,4 +1,4 @@
-/*  keyer_stm32fduino.h
+/*  keyer_stm32duino.h
 
 
   Use this file to enables clean compilation using the STM32duino board support for STM32 ARM
