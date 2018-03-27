@@ -897,7 +897,8 @@ Recent Update History
   #include <Wire.h>
   #define tone toneDUE
   #define noTone noToneDUE
-#elif defined(ARDUINO_MAPLE_MINI) || defined(MCU_STM32F103C8) // Use processor define
+#elif defined(ARDUINO_MAPLE_MINI) || defined(ARDUINO_GENERIC_STM32F103C) // Use processor define
+  #pragma message("Using keyer_stm32duino.h include file")      
   #include <SPI.h>
   #include <Wire.h>
   #include <EEPROM.h> 
@@ -918,12 +919,13 @@ Recent Update History
   #include "keyer_features_and_options_tinykeyer.h"
 #elif defined(HARDWARE_FK_10)
   #include "keyer_features_and_options_fk_10.h"  
-#elif defined(HARDWARE_MAPLE_MINI) || defined(GENERIC_STM32F103C)  // Board define
-#pragma message("Using Maple Mini features and options")      
+#elif defined(HARDWARE_MAPLE_MINI) // Board define
+  #pragma message("Using Maple Mini features and options")      
   #include "keyer_features_and_options_maple_mini.h"  
 #elif defined(HARDWARE_TEST)
   #include "keyer_features_and_options_test.h"
 #else
+  #pragma message("Using default hardware features and options, change keyer_hardware.h to change.") 
   #include "keyer_features_and_options.h"
 #endif
 
@@ -952,7 +954,7 @@ Recent Update History
 #elif defined(HARDWARE_FK_10)
   #include "keyer_pin_settings_fk_10.h"
   #include "keyer_settings_fk_10.h"
-#elif defined(HARDWARE_MAPLE_MINI) || defined(GENERIC_STM32F103C)
+#elif defined(HARDWARE_MAPLE_MINI) || defined(ARDUINO_GENERIC_STM32F103C)
   #include "keyer_pin_settings_maple_mini.h"
   #include "keyer_settings_maple_mini.h"
 #elif defined(HARDWARE_TEST)
@@ -1010,7 +1012,7 @@ Recent Update History
 #endif
 
 //#if defined(FEATURE_ETHERNET)
-#if !(defined(ARDUINO_MAPLE_MINI) || defined(MCU_STM32F103C8))
+#if !(defined(ARDUINO_MAPLE_MINI) || defined(ARDUINO_GENERIC_STM32F103C))
   #include <Ethernet.h>  // if this is not included, compilation fails even though all ethernet code is #ifdef'ed out
   #if defined(FEATURE_INTERNET_LINK)
     #include <EthernetUdp.h>
@@ -2442,7 +2444,7 @@ void TC3_Handler ( void ) {
 }
 
 
-#elif defined(ARDUINO_MAPLE_MINI)  //HARDWARE_ARDUINO_DUE  (STM32 omitted purposefully)
+#elif defined(ARDUINO_MAPLE_MINI)  //HARDWARE_ARDUINO_DUE  (ARDUINO_GENERIC_STM32F103C omitted purposefully)
 
 /*
 
