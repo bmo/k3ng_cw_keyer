@@ -1,17 +1,10 @@
 /*
+Support for various STM32 processor based boards such as:
+    The on the started it all off, the Maple Mini (http://wiki.stm32duino.com/index.php?title=Maple_Mini)
+    The rise of the clones, the "Blue Pill" (http://wiki.stm32duino.com/index.php?title=Blue_Pill)
+    The "Black Pill", Nucleo, etc. 
 
-#    #      ##      #####     #         ######          #    #    #    #    #    # 
-##  ##     #  #     #    #    #         #               ##  ##    #    ##   #    # 
-# ## #    #    #    #    #    #         #####           # ## #    #    # #  #    # 
-#    #    ######    #####     #         #               #    #    #    #  # #    # 
-#    #    #    #    #         #         #               #    #    #    #   ##    # 
-#    #    #    #    #         ######    ######          #    #    #    #    #    # 
-                                                                                   
-
-                                                                                   */
-
-
-
+*/
 // compile time features and options - comment or uncomment to add or delete features
 // FEATURES add more bytes to the compiled binary, OPTIONS change code behavior
 
