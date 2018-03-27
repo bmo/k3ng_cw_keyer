@@ -1,15 +1,9 @@
 /*
-
-                                                        
-#    #      ##      #####     #         ######          #    #    #    #    #    # 
-##  ##     #  #     #    #    #         #               ##  ##    #    ##   #    # 
-# ## #    #    #    #    #    #         #####           # ## #    #    # #  #    # 
-#    #    ######    #####     #         #               #    #    #    #  # #    # 
-#    #    #    #    #         #         #               #    #    #    #   ##    # 
-#    #    #    #    #         ######    ######          #    #    #    #    #    # 
-                                                                                   
-
+   Example pin settings for a minimal "Blue Pill" STM32F103C8 board with Paddle on PB0, PB1. Use PC14, the LED, as the *inverse* of the Key line, since on most blue pills it's
+                                    wired to sink the LED voltage 
 */
+
+//  NOTE NOTE NOTE:   STM32 boards are different. It's probably best to use the symbol name (e.g. PB0) instead of the numeric pin number. 
 
 /* Pins - you must review these and configure ! */
 #ifndef keyer_pin_settings_h

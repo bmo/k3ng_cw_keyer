@@ -15200,11 +15200,9 @@ int memory_end(byte memory_number) {
 void initialize_pins() {
   
 
-  pinMode (paddle_left, INPUT);
-  digitalWrite (paddle_left, HIGH);
-  pinMode (paddle_right, INPUT);
-  digitalWrite (paddle_right, HIGH);
-
+  pinMode (paddle_left, INPUT_PULLUP);
+  pinMode (paddle_right, INPUT_PULLUP);
+  
   #if defined(FEATURE_CAPACITIVE_PADDLE_PINS)
     if (capactive_paddle_pin_inhibit_pin){
       pinMode (capactive_paddle_pin_inhibit_pin, INPUT);
@@ -15275,8 +15273,7 @@ void initialize_pins() {
   }
 
   #ifdef FEATURE_CW_DECODER
-    pinMode (cw_decoder_pin, INPUT);
-    digitalWrite (cw_decoder_pin, HIGH);
+    pinMode (cw_decoder_pin, INPUT_PULLUP);
 
     #if defined(OPTION_CW_DECODER_GOERTZEL_AUDIO_DETECTOR)
       digitalWrite (cw_decoder_audio_input_pin, LOW);
@@ -15315,20 +15312,18 @@ void initialize_pins() {
   #endif //FEATURE_ALPHABET_SEND_PRACTICE
 
   #ifdef FEATURE_PTT_INTERLOCK
-    pinMode(ptt_interlock,INPUT);
     if (ptt_interlock_active_state == HIGH){
-      digitalWrite(ptt_interlock,LOW);
+      pinMode(ptt_interlock,INPUT);
     } else {
-      digitalWrite(ptt_interlock,HIGH);
+      pinMode(ptt_interlock,INPUT_PULLUP);
     }
   #endif //FEATURE_PTT_INTERLOCK
 
   #ifdef FEATURE_STRAIGHT_KEY
-    pinMode(pin_straight_key,INPUT);
     if (STRAIGHT_KEY_ACTIVE_STATE == HIGH){
-      digitalWrite (pin_straight_key, LOW);
+      pinMode(pin_straight_key,INPUT);
     } else {
-      digitalWrite (pin_straight_key, HIGH);
+      pinMode(pin_straight_key,INPUT_PULLUP);
     }
   #endif //FEATURE_STRAIGHT_KEY
 
@@ -15772,8 +15767,8 @@ void initialize_rotary_encoder(){
     pinMode(rotary_pin1, INPUT);
     pinMode(rotary_pin2, INPUT);
     #ifdef OPTION_ENCODER_ENABLE_PULLUPS
-      digitalWrite(rotary_pin1, HIGH);
-      digitalWrite(rotary_pin2, HIGH);
+      pinMode(rotary_pin1, INPUT_PULLUP);
+      pinMode(rotary_pin2, INPUT_PULLUP);
     #endif //OPTION_ENCODER_ENABLE_PULLUPS
   #endif //FEATURE_ROTARY_ENCODER
   
