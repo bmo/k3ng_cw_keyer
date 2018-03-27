@@ -897,7 +897,7 @@ Recent Update History
   #include <Wire.h>
   #define tone toneDUE
   #define noTone noToneDUE
-#elif defined(ARDUINO_MAPLE_MINI)
+#elif defined(ARDUINO_MAPLE_MINI) || defined(MCU_STM32F103C8) // Use processor define
   #include <SPI.h>
   #include <Wire.h>
   #include <EEPROM.h> 
@@ -918,7 +918,8 @@ Recent Update History
   #include "keyer_features_and_options_tinykeyer.h"
 #elif defined(HARDWARE_FK_10)
   #include "keyer_features_and_options_fk_10.h"  
-#elif defined(HARDWARE_MAPLE_MINI)
+#elif defined(HARDWARE_MAPLE_MINI) || defined(GENERIC_STM32F103C)  // Board define
+#pragma message("Using Maple Mini features and options")      
   #include "keyer_features_and_options_maple_mini.h"  
 #elif defined(HARDWARE_TEST)
   #include "keyer_features_and_options_test.h"
@@ -951,7 +952,7 @@ Recent Update History
 #elif defined(HARDWARE_FK_10)
   #include "keyer_pin_settings_fk_10.h"
   #include "keyer_settings_fk_10.h"
-#elif defined(HARDWARE_MAPLE_MINI)
+#elif defined(HARDWARE_MAPLE_MINI) || defined(GENERIC_STM32F103C)
   #include "keyer_pin_settings_maple_mini.h"
   #include "keyer_settings_maple_mini.h"
 #elif defined(HARDWARE_TEST)
@@ -1009,7 +1010,7 @@ Recent Update History
 #endif
 
 //#if defined(FEATURE_ETHERNET)
-#if !defined(ARDUINO_MAPLE_MINI)  
+#if !(defined(ARDUINO_MAPLE_MINI) || defined(MCU_STM32F103C8))
   #include <Ethernet.h>  // if this is not included, compilation fails even though all ethernet code is #ifdef'ed out
   #if defined(FEATURE_INTERNET_LINK)
     #include <EthernetUdp.h>
@@ -2441,7 +2442,7 @@ void TC3_Handler ( void ) {
 }
 
 
-#elif defined(ARDUINO_MAPLE_MINI)  //HARDWARE_ARDUINO_DUE
+#elif defined(ARDUINO_MAPLE_MINI)  //HARDWARE_ARDUINO_DUE  (STM32 omitted purposefully)
 
 /*
 
