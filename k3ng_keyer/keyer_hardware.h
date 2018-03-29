@@ -46,7 +46,7 @@
 // Do not touch anything below this line!
 // Serial port class definitions for various devices
 
-#if defined(ARDUINO_MAPLE_MINI)
+#if defined(ARDUINO_MAPLE_MINI) || (ARDUINO_GENERIC_STM32F103C)
   #define PRIMARY_SERIAL_CLS USBSerial
   #define SECONDARY_SERIAL_CLS USBSerial 
 #elif defined(ARDUINO_AVR_PROMICRO) || defined(ARDUINO_AVR_LEONARDO) || defined(ARDUINO_AVR_MICRO) || defined(ARDUINO_AVR_YUN) || defined(ARDUINO_AVR_ESPLORA) || defined(ARDUINO_AVR_LILYPAD_USB) || defined(ARDUINO_AVR_ROBOT_CONTROL) || defined(ARDUINO_AVR_ROBOT_MOTOR) || defined(ARDUINO_AVR_LEONARDO_ETH)
