@@ -870,7 +870,18 @@ Recent Update History
     2018.03.24.01
       Support for ARDUINO_MAPLE_MINI contributed by Marcin SP5IOU
       HARDWARE_MAPLE_MINI hardware profile in keyer_hardware.h
-  
+
+    2018.03.29.01
+      Support for ARDUINO_GENERIC_STM32F103C (Blue pill boards) contributed by Marcin SP5IOU
+      HARDWARE_GENERIC_STM32F103C hardware profile in keyer_hardware.h
+      How to deal with those boards with Arduino: https://www.techshopbd.com/uploads/product_document/STM32bluepillarduinoguide(1).pdf
+
+    2018.03.30.01
+      tx_inhibit and tx_pause pins implemented for use with contest station interlock controllers.  Documentation: https://github.com/k3ng/k3ng_cw_keyer/wiki/225-Sidetone,-PTT,-and-TX-Key-Lines#tx-inhibit-and-pause
+ 
+    2018.03.31.01
+      Now have OPTION_WINKEY_2_HOST_CLOSE_NO_SERIAL_PORT_RESET activated in feature files by default.
+
   This code is currently maintained for and compiled with Arduino 1.8.1.  Your mileage may vary with other versions.
 
   ATTENTION: LIBRARY FILES MUST BE PUT IN LIBRARIES DIRECTORIES AND NOT THE INO SKETCH DIRECTORY !!!!
@@ -886,8 +897,8 @@ Recent Update History
 
 */
 
-#define CODE_VERSION "2018.03.24.01"
-#define eeprom_magic_number 30               // you can change this number to have the unit re-initialize EEPROM
+#define CODE_VERSION "2018.03.31.01"
+#define eeprom_magic_number 31               // you can change this number to have the unit re-initialize EEPROM
 
 #include <stdio.h>
 #include "keyer_hardware.h"
@@ -897,8 +908,7 @@ Recent Update History
   #include <Wire.h>
   #define tone toneDUE
   #define noTone noToneDUE
-#elif defined(ARDUINO_MAPLE_MINI) || defined(ARDUINO_GENERIC_STM32F103C) // Use processor define
-  #pragma message("Using keyer_stm32duino.h include file")      
+#elif defined(ARDUINO_MAPLE_MINI)|| defined(ARDUINO_GENERIC_STM32F103C)
   #include <SPI.h>
   #include <Wire.h>
   #include <EEPROM.h> 
@@ -919,9 +929,10 @@ Recent Update History
   #include "keyer_features_and_options_tinykeyer.h"
 #elif defined(HARDWARE_FK_10)
   #include "keyer_features_and_options_fk_10.h"  
-#elif defined(HARDWARE_MAPLE_MINI) // Board define
-  #pragma message("Using Maple Mini features and options")      
-  #include "keyer_features_and_options_maple_mini.h"  
+#elif defined(HARDWARE_MAPLE_MINI)//sp5iou 20180328
+  #include "keyer_features_and_options_maple_mini.h"
+#elif defined(HARDWARE_GENERIC_STM32F103C)//sp5iou 20180329
+  #include "keyer_features_and_options_generic_STM32F103C.h"
 #elif defined(HARDWARE_TEST)
   #include "keyer_features_and_options_test.h"
 #else
@@ -957,6 +968,9 @@ Recent Update History
 #elif defined(HARDWARE_MAPLE_MINI) || defined(ARDUINO_GENERIC_STM32F103C)
   #include "keyer_pin_settings_maple_mini.h"
   #include "keyer_settings_maple_mini.h"
+#elif defined(HARDWARE_GENERIC_STM32F103C)
+  #include "keyer_pin_settings_generic_STM32F103C.h"
+  #include "keyer_settings_generic_STM32F103C.h"
 #elif defined(HARDWARE_TEST)
   #include "keyer_pin_settings_test.h"
   #include "keyer_settings_test.h"
@@ -1012,12 +1026,12 @@ Recent Update History
 #endif
 
 //#if defined(FEATURE_ETHERNET)
-#if !(defined(ARDUINO_MAPLE_MINI) || defined(ARDUINO_GENERIC_STM32F103C))
+#if !defined(ARDUINO_MAPLE_MINI)&& !defined(ARDUINO_GENERIC_STM32F103C) //sp5iou 20180329
   #include <Ethernet.h>  // if this is not included, compilation fails even though all ethernet code is #ifdef'ed out
   #if defined(FEATURE_INTERNET_LINK)
     #include <EthernetUdp.h>
   #endif //FEATURE_INTERNET_LINK
-#endif //!defined(ARDUINO_MAPLE_MINI)  
+#endif //!defined(ARDUINO_MAPLE_MINI)&& !defined(ARDUINO_GENERIC_STM32F103C) //sp5iou 20180329  
 //#endif //FEATURE_ETHERNET
 
 
@@ -1041,7 +1055,8 @@ Recent Update History
   #include <SD.h>
 #endif //FEATURE_SD_CARD_SUPPORT
 
-#define memory_area_start 82             // the eeprom location where memory space starts
+//#define memory_area_start 82             // the eeprom location where memory space starts sp5iou 20180328 put it to keyer_settings since it must be different for STM boards
+#define memory_area_start 110             // sp5iou 20180328 the eeprom location where memory space starts  for STM32 it must be at least 110 to avoid overlap mem 1 with wpm settings 
 
 // Variables and stuff
 struct config_t {  // 80 bytes total
@@ -1668,7 +1683,7 @@ void loop()
 
     #if defined(FEATURE_SERIAL)      
       check_serial();
-      check_paddles();            
+      check_paddles();           
       service_dit_dah_buffers();
     #endif //FEATURE_SERIAL
 
@@ -1703,7 +1718,6 @@ void loop()
 
     #ifdef FEATURE_DISPLAY
       check_paddles();
-      service_dit_dah_buffers();
       service_send_buffer(PRINTCHAR);
       service_display();
     #endif //FEATURE_DISPLAY
@@ -1779,6 +1793,60 @@ void loop()
 
 
 // Are you a radio artisan ?
+
+
+//zzzzzzz
+
+
+byte service_tx_inhibit_and_pause(){
+
+  byte return_code = 0;
+  static byte pause_sending_buffer_active = 0;
+
+  if (tx_inhibit_pin){
+    if ((digitalRead(tx_inhibit_pin) == tx_inhibit_pin_active_state)){
+      dit_buffer = 0;
+      dah_buffer = 0; 
+      return_code = 1;
+      if (send_buffer_bytes > 0){
+        clear_send_buffer();
+        send_buffer_status = SERIAL_SEND_BUFFER_NORMAL;
+        #ifdef FEATURE_MEMORIES
+          play_memory_prempt = 1;
+          repeat_memory = 255;
+        #endif
+        #ifdef FEATURE_WINKEY_EMULATION
+          if (winkey_sending && winkey_host_open) {
+            winkey_port_write(0xc2|winkey_sending|winkey_xoff); // 0xc2 - BREAKIN bit set high
+            winkey_interrupted = 1;
+          }
+        #endif
+      }
+    }
+  }
+
+  if (tx_pause_pin){
+    if ((digitalRead(tx_pause_pin) == tx_pause_pin_active_state)){
+      dit_buffer = 0;
+      dah_buffer = 0; 
+      return_code = 1;
+      pause_sending_buffer = 1;
+      pause_sending_buffer_active = 1;
+    } else {
+      if (pause_sending_buffer_active){
+        pause_sending_buffer = 0;
+        pause_sending_buffer_active = 0;
+      } 
+    }
+
+    
+  }  
+
+  return return_code;
+
+}
+
+//-------------------------------------------------------------------------------------------------------
 
 
 #if defined(FEATURE_COMPETITION_COMPRESSION_DETECTION)
@@ -2443,15 +2511,12 @@ void TC3_Handler ( void ) {
   
 }
 
-
-#elif defined(ARDUINO_MAPLE_MINI)  //HARDWARE_ARDUINO_DUE  (ARDUINO_GENERIC_STM32F103C omitted purposefully)
-
+#endif
 /*
-
-This code from http://www.stm32duino.com/viewtopic.php?t=496
-
-*/
-      
+//sp5iou 2018/0329 This is already in stm32 SDK standard library
+#elif defined(ARDUINO_MAPLE_MINI) || defined(ARDUINO_GENERIC_STM32F103C) //HARDWARE_ARDUINO_DUE
+//This code from http://www.stm32duino.com/viewtopic.php?t=496
+     
 ///////////////////////////////////////////////////////////////////////
 //
 // tone(pin,frequency[,duration]) generate a tone on a given pin
@@ -2533,7 +2598,7 @@ void noTone(uint8_t pin){
 
 
 #endif //ARDUINO_MAPLE_MINI / ARDUINO_SAM_DUE
-
+*/
 
 //-------------------------------------------------------------------------------------------------------
 
@@ -2819,9 +2884,9 @@ void display_scroll_print_char(char charin){
 //-------------------------------------------------------------------------------------------------------
 #ifdef FEATURE_DISPLAY
 void lcd_clear() {
-
   lcd.clear();
-  lcd_status = LCD_CLEAR;
+  lcd.noCursor();//sp5iou 20180328
+ lcd_status = LCD_CLEAR;
 
 }
 #endif
@@ -2829,6 +2894,7 @@ void lcd_clear() {
 #ifdef FEATURE_DISPLAY
 void lcd_center_print_timed(String lcd_print_string, byte row_number, unsigned int duration)
 {
+  lcd.noCursor();//sp5iou 20180328
   if (lcd_status != LCD_TIMED_MESSAGE) {
     lcd_previous_status = lcd_status;
     lcd_status = LCD_TIMED_MESSAGE;
@@ -2847,6 +2913,7 @@ void lcd_center_print_timed(String lcd_print_string, byte row_number, unsigned i
 #ifdef FEATURE_DISPLAY
 void clear_display_row(byte row_number)
 {
+  lcd.noCursor();//sp5iou 20180328
   for (byte x = 0; x < LCD_COLUMNS; x++) {
     lcd.setCursor(x,row_number);
     lcd.print(" ");
@@ -4540,6 +4607,7 @@ void hell_test ()
   transmit_hell_char('/');
   transmit_hell_char('.');
   transmit_hell_char(',');
+  transmit_hell_char('!');//sp5iou
 //  transmit_hell_char('‘');  // this causes compiler warning; unicode character or something?
   transmit_hell_char('=');
   transmit_hell_char(')');
@@ -4870,6 +4938,7 @@ void check_paddles()
     }
   } //if (configuration.keyer_mode == SINGLE_PADDLE)
 
+  service_tx_inhibit_and_pause();
 
 }
 
@@ -5679,31 +5748,24 @@ void loop_element_lengths(float lengths, float additional_time_ms, int speed_wpm
 
 
     
-     if ((lengths == 0) or (lengths < 0)) {
-       return;
-     }
+    if ((lengths == 0) or (lengths < 0)) {
+     return;
+    }
 
 
-     float element_length;
+    float element_length;
 
-     if (speed_mode == SPEED_NORMAL) {
-       element_length = 1200/speed_wpm_in;   
-     } else {
-       element_length = qrss_dit_length * 1000;
-     }
-
-
-
-     //#ifdef FEATURE_CMOS_SUPER_KEYER_IAMBIC_B_TIMING
-       //unsigned long starttime = millis();
-       //unsigned long starttime = micros();
-     //#endif //FEATURE_CMOS_SUPER_KEYER_IAMBIC_B_TIMING
+    if (speed_mode == SPEED_NORMAL) {
+      element_length = 1200/speed_wpm_in;   
+    } else {
+      element_length = qrss_dit_length * 1000;
+    }
 
     unsigned long ticks = long(element_length*lengths*1000) + long(additional_time_ms*1000); // improvement from Paul, K1XM
     unsigned long start = micros();
     unsigned long endtime = micros() + long(element_length*lengths*1000) + long(additional_time_ms*1000);
 
-    while ((micros() - start) < ticks){
+    while (((micros() - start) < ticks) && (service_tx_inhibit_and_pause() == 0)){
 
        check_ptt_tail();
 
@@ -7282,7 +7344,7 @@ void check_the_memory_buttons()
 
 #if defined(FEATURE_COMMAND_BUTTONS) && defined(FEATURE_DL2SBA_BANKSWITCH)
 void setOneButton(int button, int index) { 
-    
+//   sp5iou 20180328 to be compatible with either stm32 and avr arduinos 
   int button_value = int(1023 * (float(button * analog_buttons_r2)/float((button * analog_buttons_r2) + analog_buttons_r1))); 
   int lower_button_value = int(1023 * (float((button-1) * analog_buttons_r2)/float(((button-1) * analog_buttons_r2) + analog_buttons_r1))); 
   int higher_button_value = int(1023 * (float((button+1) * analog_buttons_r2)/float(((button+1) * analog_buttons_r2) + analog_buttons_r1))); 
@@ -8049,8 +8111,9 @@ void send_char(byte cw_char, byte omit_letterspace)
       //case '&': send_dit(); loop_element_lengths(3); send_dits(3); break;
       case '.': send_the_dits_and_dahs(".-.-.-");break;
       case ',': send_the_dits_and_dahs("--..--");break;
+      case '!': send_the_dits_and_dahs("--..--");break;//sp5iou 20180328
       case '\'': send_the_dits_and_dahs(".----.");break;// apostrophe
-      case '!': send_the_dits_and_dahs("-.-.--");break;
+//      case '!': send_the_dits_and_dahs("-.-.--");break;//sp5iou 20180328
       case '(': send_the_dits_and_dahs("-.--.");break;
       case ')': send_the_dits_and_dahs("-.--.-");break;
       case '&': send_the_dits_and_dahs(".-...");break;
@@ -8237,7 +8300,8 @@ void send_char(byte cw_char, byte omit_letterspace)
             case ',': send_the_dits_and_dahs(".-.-");break;  
             case '.': send_the_dits_and_dahs("..--..");break;
             case '?': send_the_dits_and_dahs("-..-.");break;  
-            case '!': send_the_dits_and_dahs("---.");break;  
+//            case '!': send_the_dits_and_dahs("---.");break;  
+            case '!': send_the_dits_and_dahs("--..--");break;  //sp5iou 20180328
             case ':': send_the_dits_and_dahs("-.-&.&.");break;    
             case ';': send_the_dits_and_dahs("...&..");break;   
             case '-': send_the_dits_and_dahs("....&.-..");break;    
@@ -8340,7 +8404,10 @@ void service_send_buffer(byte no_print)
 
   #ifdef DEBUG_LOOP
     debug_serial_port->println(F("loop: entering service_send_buffer"));
-  #endif          
+  #endif       
+
+  if (service_tx_inhibit_and_pause() == 1){return;}
+
 
   #ifdef FEATURE_MEMORIES
     play_memory_prempt = 0;
@@ -13922,7 +13989,8 @@ int convert_cw_number_to_ascii (long number_in)
     #if !defined(OPTION_PROSIGN_SUPPORT)
       case 2111212: return '*'; break; // BK 
     #endif 
-    case 221122: return 44; break;  // ,
+//    case 221122: return 44; break;  // ,
+    case 221122: return '!'; break;  // ! sp5iou 20180328
     case 121212: return '.'; break;
     case 122121: return '@'; break;
     case 222222: return 92; break;  // special hack; six dahs = \ (backslash)
@@ -14409,8 +14477,6 @@ byte play_memory(byte memory_number)
   
   unsigned int jump_back_to_y = 9999;
   byte jump_back_to_memory_number = 255;
-
-  /*static*/ //String serial_number_string;
   static byte prosign_flag = 0;
   play_memory_prempt = 0;
   byte eeprom_byte_read;  
@@ -14424,8 +14490,6 @@ byte play_memory(byte memory_number)
     boop();
     return 0;
   }
-
-
 
   #ifdef DEBUG_PLAY_MEMORY
     debug_serial_port->print(F("play_memory: called with memory_number:"));
@@ -14441,10 +14505,6 @@ byte play_memory(byte memory_number)
   #endif //FEATURE_MEMORY_MACROS
 
   button0_buffer = 0;
-
-//  #ifdef DEBUG_MEMORYCHECK
-//  memorycheck();
-//  #endif
 
   if (keyer_machine_mode == KEYER_NORMAL) {
     #if defined(FEATURE_SERIAL)
@@ -14463,6 +14523,8 @@ byte play_memory(byte memory_number)
   }
   
   for (int y = (memory_start(memory_number)); (y < (memory_end(memory_number)+1)); y++) {
+
+    service_tx_inhibit_and_pause();
 
     if (keyer_machine_mode == KEYER_NORMAL) {
       #ifdef FEATURE_POTENTIOMETER
@@ -14937,6 +14999,10 @@ byte play_memory(byte memory_number)
         y = (memory_end(memory_number)+1);   // we got a play_memory_prempt flag, exit out
       } else {
         y--;  // we're in a pause mode, so sit and spin awhile
+        check_ptt_tail();
+        #if defined(FEATURE_SEQUENCER)
+          check_sequencer_tail_time();
+        #endif
       }
     }
 
@@ -15199,10 +15265,9 @@ int memory_end(byte memory_number) {
 
 void initialize_pins() {
   
-
   pinMode (paddle_left, INPUT_PULLUP);
   pinMode (paddle_right, INPUT_PULLUP);
-  
+
   #if defined(FEATURE_CAPACITIVE_PADDLE_PINS)
     if (capactive_paddle_pin_inhibit_pin){
       pinMode (capactive_paddle_pin_inhibit_pin, INPUT);
@@ -15312,11 +15377,13 @@ void initialize_pins() {
   #endif //FEATURE_ALPHABET_SEND_PRACTICE
 
   #ifdef FEATURE_PTT_INTERLOCK
-    if (ptt_interlock_active_state == HIGH){
-      pinMode(ptt_interlock,INPUT);
-    } else {
-      pinMode(ptt_interlock,INPUT_PULLUP);
-    }
+    pinMode(ptt_interlock,INPUT_PULLUP);
+    // pinMode(ptt_interlock,INPUT);
+    // if (ptt_interlock_active_state == HIGH){
+    //   digitalWrite(ptt_interlock,LOW);
+    // } else {
+    //   digitalWrite(ptt_interlock,HIGH);
+    // }
   #endif //FEATURE_PTT_INTERLOCK
 
   #ifdef FEATURE_STRAIGHT_KEY
@@ -15384,6 +15451,13 @@ void initialize_pins() {
     pinMode(ptt_input_pin,INPUT_PULLUP);
   }
 
+  if (tx_inhibit_pin){
+    pinMode(tx_inhibit_pin,INPUT_PULLUP);
+  }
+
+  if (tx_pause_pin){
+    pinMode(tx_pause_pin,INPUT_PULLUP);
+  }
   
 } //initialize_pins()
 
@@ -15764,8 +15838,6 @@ void initialize_potentiometer(){
 void initialize_rotary_encoder(){  
   
   #ifdef FEATURE_ROTARY_ENCODER
-    pinMode(rotary_pin1, INPUT);
-    pinMode(rotary_pin2, INPUT);
     #ifdef OPTION_ENCODER_ENABLE_PULLUPS
       pinMode(rotary_pin1, INPUT_PULLUP);
       pinMode(rotary_pin2, INPUT_PULLUP);
@@ -15824,6 +15896,10 @@ void check_eeprom_for_initialization(){
 
   // read settings from eeprom and initialize eeprom if it has never been written to
   if (read_settings_from_eeprom()) {
+    #if defined(HARDWARE_GENERIC_STM32F103C)
+      EEPROM.init(); //sp5iou 20180328 to reinitialize / initialize EEPROM
+      EEPROM.format();//sp5iou 20180328 to reinitialize / format EEPROM
+    #endif
     write_settings_to_eeprom(1);
     beep_boop();
     beep_boop();

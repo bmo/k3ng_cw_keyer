@@ -1,13 +1,6 @@
 /*
 
-                                                        
-#    #      ##      #####     #         ######          #    #    #    #    #    # 
-##  ##     #  #     #    #    #         #               ##  ##    #    ##   #    # 
-# ## #    #    #    #    #    #         #####           # ## #    #    # #  #    # 
-#    #    ######    #####     #         #               #    #    #    #  # #    # 
-#    #    #    #    #         #         #               #    #    #    #   ##    # 
-#    #    #    #    #         ######    ######          #    #    #    #    #    # 
-                                                                                   
+GENERIC STM32F103C Blue Pill board                                                                                  
 
 */
 
@@ -15,18 +8,17 @@
 #ifndef keyer_pin_settings_h
 #define keyer_pin_settings_h
 
-#define paddle_left PB0
-#define paddle_right PB1
-#define tx_key_line_1 PC14       // (high = key down/tx on)
+#define paddle_left PA1
+#define paddle_right PA0
+#define tx_key_line_1 PC15       // (high = key down/tx on)
 #define tx_key_line_2 0
 #define tx_key_line_3 0
 #define tx_key_line_4 0
 #define tx_key_line_5 0
 #define tx_key_line_6 0
-//#define sidetone_line 8         // connect a speaker for sidetone
-uint8_t sidetone_line = 0;        // sp5iou must be variable declaration instead of #define... for STM32 boards.
-#define potentiometer 4        // Speed potentiometer (0 to 5 V) Use pot from 1k to 10k
-#define ptt_tx_1 PC13              // PTT ("push to talk") lines
+#define sidetone_line PB9         // connect a speaker for sidetone
+#define potentiometer 0        // Speed potentiometer (0 to 5 V) Use pot from 1k to 10k
+#define ptt_tx_1 PC14              // PTT ("push to talk") lines
 #define ptt_tx_2 0              //   Can be used for keying fox transmitter, T/R switch, or keying slow boatanchors
 #define ptt_tx_3 0              //   These are optional - set to 0 if unused
 #define ptt_tx_4 0
@@ -36,8 +28,8 @@ uint8_t sidetone_line = 0;        // sp5iou must be variable declaration instead
 #define tx_key_dah 0            // if defined, goes active for dah (any transmitter) - customized with tx_key_dit_and_dah_pins_active_state and tx_key_dit_and_dah_pins_inactive_state
 
 #ifdef FEATURE_COMMAND_BUTTONS
-  #define analog_buttons_pin 3
-  #define command_mode_active_led PB1
+  #define analog_buttons_pin PA3
+  #define command_mode_active_led PC13 //for Generic STM32103C On Board LED
 #endif //FEATURE_COMMAND_BUTTONS
 
 /*
@@ -48,47 +40,47 @@ FEATURE_SIDETONE_SWITCH
 */
 
 #ifdef FEATURE_SIDETONE_SWITCH
-  #define SIDETONE_SWITCH 0
+  #define SIDETONE_SWITCH 0 //PA15
 #endif //FEATURE_SIDETONE_SWITCH
 
 
 //lcd pins
 #ifdef FEATURE_LCD_4BIT
-  #define lcd_rs 17
-  #define lcd_enable 18
-  #define lcd_d4 19
-  #define lcd_d5 20
-  #define lcd_d6 21
-  #define lcd_d7 22
+  #define lcd_rs PB12
+  #define lcd_enable PB13
+  #define lcd_d4 PB14
+  #define lcd_d5 PB15
+  #define lcd_d6 PA8
+  #define lcd_d7 PA9
 #endif //FEATURE_LCD_4BIT
 
 #ifdef FEATURE_LCD1602_N07DH
-  #define lcd_rs 17
-  #define lcd_enable 18
-  #define lcd_d4 19
-  #define lcd_d5 20
-  #define lcd_d6 21
-  #define lcd_d7 22
+  #define lcd_rs PB12
+  #define lcd_enable PB13
+  #define lcd_d4 PB14
+  #define lcd_d5 PB15
+  #define lcd_d6 PA8
+  #define lcd_d7 PA9
 #endif //FEATURE_LCD1602_N07DH
 
 //ps2 keyboard pins
 #ifdef FEATURE_PS2_KEYBOARD
-  #define ps2_keyboard_data A3 // for maple it can not be Ax - muste use pin numbers only or PBx, PCx etc... sp5iou
-  #define ps2_keyboard_clock 3    // this must be on an interrupt capable pin!
+  #define ps2_keyboard_data 0 // for STM boards it can not be Ax - muste use pin numbers only or PBx, PCx etc... sp5iou
+  #define ps2_keyboard_clock 0    // this must be on an interrupt capable pin!
 #endif //FEATURE_PS2_KEYBOARD
 
 // rotary encoder pins and options - rotary encoder code from Jim Balls M0CKE
 #ifdef FEATURE_ROTARY_ENCODER
   #define OPTION_ENCODER_HALF_STEP_MODE     // Half-step mode?
-  #define rotary_pin1 0                      // CW Encoder Pin
-  #define rotary_pin2 0                    // CCW Encoder Pin
+  #define rotary_pin1 PB7                      // CW Encoder Pin
+  #define rotary_pin2 PB8                   // CCW Encoder Pin
   #define OPTION_ENCODER_ENABLE_PULLUPS     // define to enable weak pullups.
 #endif //FEATURE_ROTARY_ENCODER
 
 #ifdef FEATURE_LED_RING
-  #define led_ring_sdi    A10 //2    //Data
-  #define led_ring_clk    A9 //3    //Clock
-  #define led_ring_le     A8 //4    //Latch
+  #define led_ring_sdi    0    //Data
+  #define led_ring_clk    0    //Clock
+  #define led_ring_le     0    //Latch
 #endif //FEATURE_LED_RING
 
 #ifdef FEATURE_ALPHABET_SEND_PRACTICE
@@ -101,24 +93,24 @@ FEATURE_SIDETONE_SWITCH
 #endif //FEATURE_PTT_INTERLOCK
 
 #ifdef FEATURE_STRAIGHT_KEY
-  #define pin_straight_key 52
+  #define pin_straight_key 0
 #endif //FEATURE_STRAIGHT_KEY
 
 #ifdef FEATURE_CW_DECODER
-  #define cw_decoder_pin 5  
+  #define cw_decoder_pin 0  
   #ifdef OPTION_CW_DECODER_GOERTZEL_AUDIO_DETECTOR
     #define cw_decoder_audio_input_pin 0 // this must be an analog pin!
   #endif //OPTION_CW_DECODER_GOERTZEL_AUDIO_DETECTOR
-  #define cw_decoder_indicator 24
+  #define cw_decoder_indicator 0
 #endif //FEATURE_CW_DECODER
 
 
 #if defined(FEATURE_COMPETITION_COMPRESSION_DETECTION)
-  #define compression_detection_pin 13
+  #define compression_detection_pin 0
 #endif //FEATURE_COMPETITION_COMPRESSION_DETECTION
 
 #if defined(FEATURE_SLEEP)
-  #define keyer_awake 6
+  #define keyer_awake 0
 #endif
 
 #if defined(FEATURE_CAPACITIVE_PADDLE_PINS)
@@ -126,24 +118,24 @@ FEATURE_SIDETONE_SWITCH
 #endif
 
 #ifdef FEATURE_4x4_KEYPAD
-  #define Row3 33
-  #define Row2 32
-  #define Row1 31
-  #define Row0 30
-  #define Col3 37
-  #define Col2 36
-  #define Col1 35
-  #define Col0 34
+  #define Row3 PB11
+  #define Row2 PB10
+  #define Row1 PB1
+  #define Row0 PB0
+  #define Col3 PA7
+  #define Col2 PA6
+  #define Col1 PA5
+  #define Col0 PA4
 #endif
 
 #ifdef FEATURE_3x4_KEYPAD
-  #define Row3 33
-  #define Row2 32
-  #define Row1 31
-  #define Row0 30
-  #define Col2 36
-  #define Col1 35
-  #define Col0 34
+  #define Row3 PB11
+  #define Row2 PB10
+  #define Row1 PB1
+  #define Row0 PB0
+  #define Col2 PA7
+  #define Col1 PA6
+  #define Col0 PA5
 #endif
 
 #ifdef FEATURE_SEQUENCER
