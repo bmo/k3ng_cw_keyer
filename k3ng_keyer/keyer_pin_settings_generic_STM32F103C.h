@@ -8,17 +8,17 @@ GENERIC STM32F103C Blue Pill board
 #ifndef keyer_pin_settings_h
 #define keyer_pin_settings_h
 
-#define paddle_left PA1
-#define paddle_right PA0
-#define tx_key_line_1 PC15       // (high = key down/tx on)
+#define paddle_left PB1
+#define paddle_right PB0
+#define tx_key_line_1 PC14       // (high = key down/tx on)
 #define tx_key_line_2 0
 #define tx_key_line_3 0
 #define tx_key_line_4 0
 #define tx_key_line_5 0
 #define tx_key_line_6 0
-#define sidetone_line PB9         // connect a speaker for sidetone
+#define sidetone_line PB8         // connect a speaker for sidetone
 #define potentiometer 0        // Speed potentiometer (0 to 5 V) Use pot from 1k to 10k
-#define ptt_tx_1 PC14              // PTT ("push to talk") lines
+#define ptt_tx_1 PC13              // PTT ("push to talk") lines
 #define ptt_tx_2 0              //   Can be used for keying fox transmitter, T/R switch, or keying slow boatanchors
 #define ptt_tx_3 0              //   These are optional - set to 0 if unused
 #define ptt_tx_4 0
@@ -28,8 +28,8 @@ GENERIC STM32F103C Blue Pill board
 #define tx_key_dah 0            // if defined, goes active for dah (any transmitter) - customized with tx_key_dit_and_dah_pins_active_state and tx_key_dit_and_dah_pins_inactive_state
 
 #ifdef FEATURE_COMMAND_BUTTONS
-  #define analog_buttons_pin PA3
-  #define command_mode_active_led PC13 //for Generic STM32103C On Board LED
+  #define analog_buttons_pin PA1
+  #define command_mode_active_led 0 //for Generic STM32103C On Board LED
 #endif //FEATURE_COMMAND_BUTTONS
 
 /*
@@ -40,7 +40,7 @@ FEATURE_SIDETONE_SWITCH
 */
 
 #ifdef FEATURE_SIDETONE_SWITCH
-  #define SIDETONE_SWITCH 0 //PA15
+  #define SIDETONE_SWITCH 0 //PA12
 #endif //FEATURE_SIDETONE_SWITCH
 
 
