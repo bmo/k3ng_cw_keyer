@@ -1017,6 +1017,10 @@ Recent Update History
   #include <FaBoLCD_PCF8574.h>
 #endif  
 
+#if defined(FEATURE_LCD_STM32_7735)
+  #include "lcd_stm32_7735.h"
+#endif
+
 #if defined(FEATURE_TRAINING_COMMAND_LINE_INTERFACE)
  // #include <BasicTerm.h>
 #endif
@@ -2746,6 +2750,23 @@ void check_sleep(){
 //-------------------------------------------------------------------------------------------------------
 
 #ifdef FEATURE_DISPLAY
+
+void lcd_clear_l() {
+  #if !defined(FEATURE_LCD_STM32_7735)
+  lcd.clear();
+  #else
+  tft.fillScreen(TFT_BACKGROUND_COLOR);
+  #endif
+}
+
+void lcd_setCursor(uint8_t col, uint8_t row) {
+  #if !defined(FEATURE_LCD_STM32_7735)
+  lcd.setCursor(col, row);
+  #else
+  tft.setCursor(col * TFT_FONT_SIZE_X, row * TFT_FONT_SIZE_Y);
+  #endif
+}
+
 void service_display() {
 
   #ifdef DEBUG_LOOP
@@ -2759,11 +2780,15 @@ void service_display() {
     switch (lcd_status) {
       case LCD_CLEAR: lcd_clear(); break;
       case LCD_SCROLL_MSG:
-         lcd.clear();
+         lcd_clear_l();
          for (x = 0;x < LCD_ROWS;x++){
            //clear_display_row(x);
-           lcd.setCursor(0,x);
-           lcd.print(lcd_scroll_buffer[x]);
+           lcd_setCursor(0,x);
+	   #if !defined(FEATURE_LCD_STM32_7735)
+             lcd.print(lcd_scroll_buffer[x]);
+	   #else
+             tft.print(lcd_scroll_buffer[x]);
+           #endif
          }         
          lcd_scroll_flag = 0; 
          lcd_scroll_buffer_dirty = 0;         
@@ -2779,13 +2804,17 @@ void service_display() {
       case LCD_SCROLL_MSG:
         if (lcd_scroll_buffer_dirty) { 
           if (lcd_scroll_flag) {
-            lcd.clear();
+            lcd_clear_l();
             lcd_scroll_flag = 0;
           }         
           for (x = 0;x < LCD_ROWS;x++){
             //clear_display_row(x);
-            lcd.setCursor(0,x);
+            lcd_setCursor(0,x);
+	    #if !defined(FEATURE_LCD_STM32_7735)
             lcd.print(lcd_scroll_buffer[x]);
+	    #else
+	    tft.print(lcd_scroll_buffer[x]);
+	    #endif
           }
           lcd_scroll_buffer_dirty = 0;
         }
@@ -2829,7 +2858,7 @@ void display_scroll_print_char(char charin){
 
   if (lcd_status != LCD_SCROLL_MSG) {
     lcd_status = LCD_SCROLL_MSG;
-    lcd.clear();
+    lcd_clear_l();
   } 
 
   if (charin == ' '){
@@ -2884,9 +2913,11 @@ void display_scroll_print_char(char charin){
 //-------------------------------------------------------------------------------------------------------
 #ifdef FEATURE_DISPLAY
 void lcd_clear() {
-  lcd.clear();
+  lcd_clear_l();
+  #if !defined(FEATURE_LCD_STM32_7735)
   lcd.noCursor();//sp5iou 20180328
- lcd_status = LCD_CLEAR;
+  #endif
+  lcd_status = LCD_CLEAR;
 
 }
 #endif
@@ -2894,16 +2925,22 @@ void lcd_clear() {
 #ifdef FEATURE_DISPLAY
 void lcd_center_print_timed(String lcd_print_string, byte row_number, unsigned int duration)
 {
+#if !defined(FEATURE_LCD_STM32_7735)	
   lcd.noCursor();//sp5iou 20180328
+#endif
   if (lcd_status != LCD_TIMED_MESSAGE) {
     lcd_previous_status = lcd_status;
     lcd_status = LCD_TIMED_MESSAGE;
-    lcd.clear();
+    lcd_clear_l();
   } else {
     clear_display_row(row_number);
   }
-  lcd.setCursor(((LCD_COLUMNS - lcd_print_string.length())/2),row_number);
-  lcd.print(lcd_print_string);
+  lcd_setCursor(((LCD_COLUMNS - lcd_print_string.length())/2),row_number);
+  #if !defined(FEATURE_LCD_STM32_7735)
+           lcd.print(lcd_print_string);
+  #else
+           tft.print(lcd_print_string);;
+  #endif
   lcd_timed_message_clear_time = millis() + duration;
 }
 #endif
@@ -2913,10 +2950,16 @@ void lcd_center_print_timed(String lcd_print_string, byte row_number, unsigned i
 #ifdef FEATURE_DISPLAY
 void clear_display_row(byte row_number)
 {
+#if !defined(FEATURE_LCD_STM32_7735)
   lcd.noCursor();//sp5iou 20180328
+#endif
   for (byte x = 0; x < LCD_COLUMNS; x++) {
-    lcd.setCursor(x,row_number);
-    lcd.print(" ");
+    lcd_setCursor(x,row_number);
+#if !defined(FEATURE_LCD_STM32_7735)
+           lcd.print(" ");
+#else
+           tft.fillRect(0, row_number * TFT_FONT_SIZE_Y, TFT_X_PIXELS, TFT_FONT_SIZE_Y, TFT_BACKGROUND_COLOR);
+#endif    
   }
 }
 #endif
@@ -16109,8 +16152,16 @@ void initialize_display(){
       lcd.begin();
       lcd.home();
     #else
+    #if !defined(FEATURE_LCD_STM32_7735)
       lcd.begin(LCD_COLUMNS, LCD_ROWS);
+    #else //FEATURE_LCD_STM32_7735 
+     #pragma message("Initilization for 7735");   
+      tft.initR(INITR_BLACKTAB);
+      tft.setRotation(0);
+      tft.fillScreen(ST7735_BLACK);           
+    #endif    
     #endif
+
     #ifdef FEATURE_LCD_ADAFRUIT_I2C
       lcd.setBacklight(lcdcolor);
     #endif //FEATURE_LCD_ADAFRUIT_I2C
@@ -16135,6 +16186,7 @@ void initialize_display(){
 
       
       
+     #if !defined(FEATURE_LCD_STM32_7735)
       //     upload 8 charaters to the lcd
       lcd.createChar(0, U_umlaut); //     German
       lcd.createChar(1, O_umlaut); //     German, Swedish
@@ -16144,13 +16196,17 @@ void initialize_display(){
       lcd.createChar(5, empty); //        For some reason this one needs to display nothing - otherwise it will display in pauses on serial interface
       lcd.createChar(6, AA_capital); //   Danish, Norwegian, Swedish
       lcd.createChar(7, Ntilde); //       Spanish
-      lcd.clear(); // you have to ;o)
+      lcd_clear(); // you have to ;o)
+      #endif // !(FEATURE_LCD_STM32_7735)
     #endif //OPTION_DISPLAY_NON_ENGLISH_EXTENSIONS
 
     if (LCD_COLUMNS < 9){
       lcd_center_print_timed("K3NGKeyr",0,4000);
     } else {
       lcd_center_print_timed("K3NG Keyer",0,4000);
+    }
+    if (LCD_ROWS > 10) {
+      lcd_center_print_timed(CODE_VERSION,LCD_ROWS-1,4000);
     }
   #endif //FEATURE_DISPLAY
 
