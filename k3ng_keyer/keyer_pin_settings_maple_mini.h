@@ -24,7 +24,7 @@
 #define tx_key_line_5 0
 #define tx_key_line_6 0
 //#define sidetone_line 8         // connect a speaker for sidetone
-uint8_t sidetone_line = 0;        // sp5iou must be variable declaration instead of #define... for STM32 boards.
+uint8_t sidetone_line = PB8;        // sp5iou must be variable declaration instead of #define... for STM32 boards.
 #define potentiometer 4        // Speed potentiometer (0 to 5 V) Use pot from 1k to 10k
 #define ptt_tx_1 PC13              // PTT ("push to talk") lines
 #define ptt_tx_2 0              //   Can be used for keying fox transmitter, T/R switch, or keying slow boatanchors
