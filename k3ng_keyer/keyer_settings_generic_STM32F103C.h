@@ -54,7 +54,6 @@ GENERIC STM32F103C
  #define LCD_COLUMNS TFT_X_PIXELS / TFT_FONT_SIZE_X
  #define LCD_ROWS TFT_Y_PIXELS / TFT_FONT_SIZE_Y
 #else
- #pragma message("NO LCD")
  #define LCD_COLUMNS 16
  #define LCD_ROWS 2
 #endif
