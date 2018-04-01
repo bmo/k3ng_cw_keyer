@@ -9,7 +9,7 @@ Generic STM32F103C "Blue Pill"
 // FEATURES add more bytes to the compiled binary, OPTIONS change code behavior
 
 
-// #define FEATURE_COMMAND_BUTTONS
+#define FEATURE_COMMAND_BUTTONS
 // #define FEATURE_COMMAND_LINE_INTERFACE  // Command Line Interface functionality
  #define FEATURE_MEMORIES             // on the Arduino Due, you must have FEATURE_EEPROM_E24C1024 and E24C1024 EEPROM hardware in order to compile this
  #define FEATURE_MEMORY_MACROS
@@ -34,7 +34,7 @@ Generic STM32F103C "Blue Pill"
 // #define FEATURE_LCD1602_N07DH      // http://linksprite.com/wiki/index.php5?title=16_X_2_LCD_Keypad_Shield_for_Arduino
 // #define FEATURE_LCD_SAINSMART_I2C
 // #define FEATURE_LCD_FABO_PCF8574  // https://github.com/FaBoPlatform/FaBoLCD-PCF8574-Library
-#define FEATURE_LCD_STM32_7735 // for a 7735-based bitmap LCD. see lcd_stm32_7735.h for additional settings
+ #define FEATURE_LCD_STM32_7735 // for a 7735-based bitmap LCD. see lcd_stm32_7735.h for additional settings
 // #define FEATURE_CW_DECODER
 // #define FEATURE_SLEEP                   // go to sleep after x minutes to conserve battery power (not compatible with Arduino DUE, may have mixed results with Mega and Mega ADK)
  #define FEATURE_ROTARY_ENCODER          // rotary encoder speed control

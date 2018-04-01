@@ -3,7 +3,6 @@ GENERIC STM32F103C
 
 
 */
-
 // Initial and hardcoded settings
 #define initial_speed_wpm 26             // "factory default" keyer speed setting
 #define initial_command_mode_speed_wpm 20 // "factory default" command mode speed setting 
@@ -45,8 +44,21 @@ GENERIC STM32F103C
 #define winkey_xoff_threshold 20         // the number of chars in the buffer when we begin sending XOFFs
 #define winkey_xon_threshold 10          // the number of chars in the buffer below which we deactivate XOFF
 #define default_memory_repeat_time 3000  // time in milliseconds
-#define LCD_COLUMNS 16
-#define LCD_ROWS 2
+
+#ifdef FEATURE_LCD_STM32_7735
+ #define TFT_X_PIXELS 128
+ #define TFT_Y_PIXELS 160
+ #define TFT_FONT_SIZE_X   6
+ #define TFT_FONT_SIZE_Y   8
+// quick and dirty -- just divide up the screen into character positions based on resolution of the screen.
+ #define LCD_COLUMNS TFT_X_PIXELS / TFT_FONT_SIZE_X
+ #define LCD_ROWS TFT_Y_PIXELS / TFT_FONT_SIZE_Y
+#else
+ #pragma message("NO LCD")
+ #define LCD_COLUMNS 16
+ #define LCD_ROWS 2
+#endif
+
 #define hell_pixel_microseconds 4025
 #define program_memory_limit_consec_spaces 1
 #define serial_leading_zeros 1            // set to 1 to activate leading zeros in serial numbers (i.e. #1 = 001)

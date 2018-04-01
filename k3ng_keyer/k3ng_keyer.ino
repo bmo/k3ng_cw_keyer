@@ -965,7 +965,7 @@ Recent Update History
 #elif defined(HARDWARE_FK_10)
   #include "keyer_pin_settings_fk_10.h"
   #include "keyer_settings_fk_10.h"
-#elif defined(HARDWARE_MAPLE_MINI) || defined(ARDUINO_GENERIC_STM32F103C)
+#elif defined(HARDWARE_MAPLE_MINI)
   #include "keyer_pin_settings_maple_mini.h"
   #include "keyer_settings_maple_mini.h"
 #elif defined(HARDWARE_GENERIC_STM32F103C)
@@ -16155,7 +16155,6 @@ void initialize_display(){
     #if !defined(FEATURE_LCD_STM32_7735)
       lcd.begin(LCD_COLUMNS, LCD_ROWS);
     #else //FEATURE_LCD_STM32_7735 
-     #pragma message("Initilization for 7735");   
       tft.initR(INITR_BLACKTAB);
       tft.setRotation(0);
       tft.fillScreen(ST7735_BLACK);           
